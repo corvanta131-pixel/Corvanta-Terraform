@@ -1,0 +1,26 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 6.0"
+    }
+  }
+
+  required_version = ">= 1.0"
+}
+
+provider "aws" {
+  region = "eu-central-1"
+}
+
+data "aws_caller_identity" "current" {}
+
+resource "aws_s3_bucket" "practice" {
+  bucket = "corvanta-terraform-practice-${data.aws_caller_identity.current.account_id}"
+
+  tags = {
+    Project     = "Corvanta"
+    Environment = "practice"
+    ManagedBy   = "Terraform"
+  }
+}

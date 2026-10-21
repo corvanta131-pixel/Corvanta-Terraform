@@ -1,0 +1,190 @@
+Our next Terraform roadmap
+
+We're going to move through these stages without stopping after every tiny command.
+
+Stage N — Make the current Terraform project maintainable
+
+Learn and implement:
+
+variables.tf
+terraform.tfvars
+locals
+outputs.tf
+variable types
+variable validation
+sensitive variables
+references between resources
+removing hard-coded configuration
+Stage O — Stable networking
+
+Add/manage:
+
+Elastic IP for backend
+associate it with EC2
+update DNS to the stable address
+understand public IPv4 vs Elastic IP
+understand what happens when EC2 is replaced
+
+This one is particularly relevant because our api.campusify.net currently points at the EC2's ordinary public IP. We don't want a future EC2 replacement to silently break the domain.
+
+Stage P — Terraform modules
+
+Refactor the project into modules:
+
+modules/
+├── networking/
+├── security/
+├── iam/
+├── compute/
+├── storage/
+└── messaging/
+
+Then learn:
+
+root module
+     ↓
+child modules
+     ↓
+resources
+
+This is a major Terraform skill.
+
+Stage Q — Environments
+
+Create a proper distinction between:
+
+practice
+development
+production
+
+and learn how variables and environment-specific configuration work.
+
+Stage R — Remote Terraform state
+
+Move away from local:
+
+terraform.tfstate
+
+and learn:
+
+S3
+  ↓
+Terraform remote state
+
+Then learn state locking appropriate to the current Terraform/AWS approach.
+
+This is important because real teams don't normally keep the authoritative Terraform state only on one developer's laptop.
+
+Stage S — Terraform lifecycle and dependency management
+
+Learn and practice:
+
+depends_on
+lifecycle
+create_before_destroy
+prevent_destroy
+ignore_changes
+implicit dependencies
+explicit dependencies
+Stage T — Data sources
+
+Use AWS data sources properly:
+
+aws_ami
+aws_caller_identity
+aws_region
+
+and learn when Terraform should discover something instead of creating it.
+
+Stage U — Better AWS infrastructure
+
+Then we expand the actual Corvanta AWS architecture.
+
+Potentially:
+
+                 Internet
+                    │
+             ┌──────┴──────┐
+             │             │
+          Frontend       Backend
+             │             │
+             S3           EC2
+                           │
+                         Nginx
+                           │
+                        Node.js
+                           │
+                 ┌─────────┴─────────┐
+                 │                   │
+             MongoDB Atlas          SQS
+
+Then potentially:
+
+CloudWatch
+IAM improvements
+logging
+alarms
+S3 configuration
+backup/storage considerations
+additional networking
+Stage V — Terraform + application deployment
+
+We make Terraform responsible for infrastructure while keeping application deployment separate.
+
+We'll learn the distinction between:
+
+Terraform
+   =
+Infrastructure
+
+and:
+
+Git / deployment process
+   =
+Application
+
+That's important because we don't want Terraform becoming a giant shell script that deploys Node.js.
+
+Stage W — CI/CD
+
+Then:
+
+GitHub
+   ↓
+GitHub Actions
+   ↓
+Terraform
+   ↓
+AWS
+
+and eventually:
+
+GitHub
+   ↓
+CI
+   ↓
+Terraform infrastructure
+   ↓
+Application deployment
+Stage X — Terraform project suitable for portfolio
+
+Finally we'll clean everything up:
+
+corvanta-terraform/
+├── main.tf
+├── providers.tf
+├── variables.tf
+├── terraform.tfvars
+├── outputs.tf
+├── versions.tf
+├── locals.tf
+├── modules/
+│   ├── networking/
+│   ├── security/
+│   ├── iam/
+│   ├── compute/
+│   ├── storage/
+│   └── messaging/
+└── README.md
+
+That becomes something you can actually discuss in an AWS/DevOps interview.

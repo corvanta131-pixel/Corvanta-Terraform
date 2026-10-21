@@ -1,0 +1,20 @@
+Terraform installed                    ✅
+AWS provider                            ✅
+Terraform initialized                   ✅
+AWS authentication                      ✅
+Practice S3 resource                    ✅
+Corvanta VPC                            NEXT
+Internet Gateway                        NEXT
+Public subnet                           NEXT
+Private subnet                          NEXT
+Public route table                      NEXT
+Internet route                          NEXT
+Public route association                NEXT
+Private route table                     NEXT
+Private route association               NEXT
+Security groups                         AFTER
+IAM                                     AFTER
+EC2                                     AFTER
+SQS                                     AFTER
+S3 production structure                 AFTER
+Corvanta backend deployment             AFTER
