@@ -1,62 +1,67 @@
-# Corvanta — Continue Existing Backend Deployment
+# Corvanta — Stage A: API Integration and Changing-IP Awareness
 
-Local backend repository: `/home/louis/corvanta/corvanta-backend`
-EC2: `ubuntu@18.159.47.196`
-SSH key: `/home/louis/.ssh/corvanta-ec2`
-AWS region: `eu-central-1`
+The Corvanta backend is deployed and publicly accessible through Nginx.
 
-The previous investigation produced `production_configuration_report.md`. Since that report was written, I have clarified that MongoDB Atlas is already configured in the existing local `.env` file.
+- Frontend: `~/corvanta/corvanta-frontend`
+- Backend: `~/corvanta/corvanta-backend`
+- Terraform: `~/corvanta/corvanta-terraform`
+- API base URL: `http://18.159.47.196/api/v1`
+- Health endpoint: `http://18.159.47.196/api/v1/health`
+- AWS region: `eu-central-1`
+- AWS CLI profile: `corvanta-admin`
+- EC2 instance: `i-0ce140cb522998b9a`
+- SSH key: `/home/louis/.ssh/corvanta-ec2`
 
-**Continue the deployment. Do not restart the project, ask me to recreate MongoDB Atlas, or repeat the investigation unnecessarily.**
+## Objective
 
-## 1. Prepare production configuration locally
+Complete Stage A by verifying the deployed API and preparing the existing frontend for integration. Account for the fact that my public IP changes, which can affect SSH access to EC2.
 
-Inspect the existing `.env`, `.env.example`, configuration validation, and source code without printing secret values.
+## 1. Check connectivity and changing public IP
 
-- Reuse the existing `MONGO_URI` if it is valid for production and connects to the existing Atlas database.
-- Check whether `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` already exist and satisfy production validation.
-- If either JWT secret is missing or is a development placeholder, generate a strong independent secret locally and securely add it to the production configuration. Do not display it.
-- Preserve valid existing configuration, but do not blindly copy development-only values or unnecessary secrets.
-- Set `NODE_ENV=production` and `PORT=5000`.
-- Configure `QUEUE_TYPE=sqs`, the existing queue URL `https://sqs.eu-central-1.amazonaws.com/072718160542/Corvanta-production-queue`, and `AWS_REGION=eu-central-1`.
-- Do not configure static AWS access keys if the existing SDK can use the EC2 instance role.
-- Check whether optional OpenAI, Resend, Cloudinary, and frontend URL settings are required at startup. Leave optional integrations disabled or unconfigured only if the existing code supports that.
+- Detect my current public IPv4 address using a reliable IP-check service.
+- Check whether SSH access to the existing EC2 instance works with the existing SSH key.
+- If SSH fails, inspect the current EC2 security-group SSH ingress rules using AWS CLI profile `corvanta-admin`.
+- Compare the current IP with the existing authorized SSH CIDR.
+- If my IP changed, report the required narrow `/32` CIDR update and identify the exact Terraform resource or configuration responsible.
+- Do not automatically modify AWS security groups, edit Terraform state, or apply Terraform. Request approval before making infrastructure changes.
+- Never open SSH to `0.0.0.0/0`.
+- If SSH already works, do not change the security group merely because the IP changed.
 
-Protect `.env` with restrictive permissions. Ensure it is ignored by Git and never print, commit, or transfer it as part of the source-code sync.
+## 2. Inspect the frontend and backend
 
-If the existing Atlas URI is missing, invalid, or unsuitable for production, stop and report the variable name and issue without revealing the URI or its credentials.
+Read existing project instructions and inspect the frontend architecture, scripts, environment configuration, Axios client, routing, state management, and tests.
 
-## 2. Install and deploy to the existing EC2 instance
+Inspect the backend's actual routes, authentication flow, response formats, and CORS configuration. Use source code as the authority; do not invent endpoints or authentication behavior.
 
-After the required configuration has been validated:
+## 3. Verify public API access
 
-1. Connect using the existing SSH key and Ubuntu user.
-2. Install a Node.js version compatible with the project's `package.json` and lockfile. Do not assume Node.js 18 is correct without checking compatibility.
-3. Transfer `/home/louis/corvanta/corvanta-backend` to `/home/ubuntu/corvanta-backend`, excluding `.git`, `node_modules`, `.env`, and other unnecessary development files.
-4. Preserve any existing remote application files or configuration that would otherwise be overwritten.
-5. Run `npm ci --omit=dev` if supported by the project's lockfile.
-6. Create `/home/ubuntu/corvanta-backend/.env` securely with the validated production settings. Transfer secrets through a protected method, not source-control files, shell command arguments, or logs.
-7. Create and enable a persistent `corvanta-backend` systemd service, using the actual startup command specified by the repository.
-8. Start the service and inspect its status.
+Check the public API root and health endpoint. Determine whether browser requests will work with the current CORS configuration.
 
-Do not open port 5000 publicly or modify security groups.
+Do not send real credentials or sensitive data over HTTP.
 
-## 3. Verify the application
+## 4. Prepare frontend API integration
 
-- Test the documented health endpoint or root route on `localhost:5000`.
-- Confirm the service starts and connects to MongoDB Atlas.
-- Check SQS initialization if the application uses it.
-- Inspect only the minimum necessary logs and redact sensitive information.
-- If startup or connectivity fails, diagnose the specific error and make only a justified correction. Do not invent credentials or repeatedly restart a failing service without addressing the cause.
+Configure the API base URL using the frontend's existing environment-variable convention. Ensure API errors are handled consistently and prepare the client for the verified authentication flow.
+
+Run relevant existing TypeScript, lint, test, and production-build checks where supported. Fix integration-related issues without unnecessary refactoring.
+
+## 5. Report
+
+Report:
+- Current IP-check and SSH-access results.
+- Whether any security-group change is actually required.
+- Verified backend API, authentication, and CORS findings.
+- Files changed and checks passed or failed.
+- Blockers and the exact recommended next stage.
 
 ## Restrictions
 
-- Do not rerun Terraform apply or destroy.
-- Do not recreate AWS infrastructure or the MongoDB database.
-- Do not change Atlas network access or database users automatically.
-- Do not expose secrets, tokens, or private keys.
-- Do not commit or push Git changes.
+- Do not recreate the frontend or replace its architecture.
+- Do not implement the dashboard yet.
+- Do not run Terraform apply/destroy or make AWS infrastructure changes without explicit approval.
+- Do not commit or push.
+- Do not print secrets, tokens, private keys, or `.env` contents.
+- Do not expose port 5000 publicly.
+- The API currently uses HTTP; do not transmit real login credentials until HTTPS is configured.
 
-Proceed with the actual deployment where prerequisites are satisfied. If a required secret or configuration value genuinely cannot be recovered from the existing local configuration, stop and tell me exactly which variable is missing, without exposing any values.
-
-Finish with a report of the installation, deployment, systemd status, and application health-check result.
+Complete Stage A only, then stop and provide the report.
