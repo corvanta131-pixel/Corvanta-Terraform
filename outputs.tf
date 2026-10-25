@@ -13,6 +13,11 @@ output "backend_public_ip" {
   value       = module.compute.backend_public_ip
 }
 
+output "backend_private_ip" {
+  description = "Private IP of the Corvanta backend EC2 instance"
+  value       = module.compute.backend_private_ip
+}
+
 output "backend_elastic_ip" {
   description = "Elastic IP assigned to the Corvanta backend"
   value       = module.compute.backend_elastic_ip
@@ -20,10 +25,10 @@ output "backend_elastic_ip" {
 
 output "s3_bucket_name" {
   description = "Name of the Corvanta S3 bucket"
-  value       = aws_s3_bucket.practice.bucket
+  value       = module.storage.s3_bucket_name
 }
 
 output "sqs_queue_url" {
   description = "URL of the Corvanta SQS queue"
-  value       = aws_sqs_queue.corvanta.url
+  value       = module.messaging.sqs_queue_url
 }

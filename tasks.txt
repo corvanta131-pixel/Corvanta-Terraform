@@ -1,370 +1,62 @@
-here is my main.tf root file. i dont know what you want me to change so look at it . all the vpc changes you need to specify the files. also here is the grep result  terraform {
-  required_providers {
-    aws = {
-      source  = "hashicorp/aws"
-      version = "~> 6.0"
-    }
-  }
-
-  required_version = ">= 1.0"
-}
-
-provider "aws" {
-  region = "eu-central-1"
-}
-
-data "aws_caller_identity" "current" {}
-
-resource "aws_s3_bucket" "practice" {
-  bucket = "corvanta-terraform-practice-${data.aws_caller_identity.current.account_id}"
-
-  tags = {
-    Project     = "Corvanta"
-    Environment = "practice"
-    ManagedBy   = "Terraform"
-  }
-}
-
-# --------------------------------------------------
-# CORVANTA VPC
-# --------------------------------------------------
-
-resource "aws_vpc" "corvanta" {
-  cidr_block           = "10.0.0.0/16"
-  enable_dns_support   = true
-  enable_dns_hostnames = true
-
-  tags = {
-    Name        = "corvanta-vpc"
-    Project     = "Corvanta"
-    Environment = "practice"
-    ManagedBy   = "Terraform"
-  }
-}
-
-
-resource "aws_internet_gateway" "corvanta" {
-  vpc_id = aws_vpc.corvanta.id
+# Corvanta — Continue Existing Backend Deployment
 
-  tags = {
-    Name        = "corvanta-igw"
-    Project     = "Corvanta"
-    Environment = "practice"
-    ManagedBy   = "Terraform"
-  }
-}
+Local backend repository: `/home/louis/corvanta/corvanta-backend`
+EC2: `ubuntu@18.159.47.196`
+SSH key: `/home/louis/.ssh/corvanta-ec2`
+AWS region: `eu-central-1`
 
-resource "aws_subnet" "public" {
-  vpc_id                  = aws_vpc.corvanta.id
-  cidr_block              = "10.0.1.0/24"
-  availability_zone       = "eu-central-1a"
-  map_public_ip_on_launch = true
+The previous investigation produced `production_configuration_report.md`. Since that report was written, I have clarified that MongoDB Atlas is already configured in the existing local `.env` file.
 
-  tags = {
-    Name        = "corvanta-public-subnet"
-    Project     = "Corvanta"
-    Environment = "practice"
-    ManagedBy   = "Terraform"
-  }
-}
+**Continue the deployment. Do not restart the project, ask me to recreate MongoDB Atlas, or repeat the investigation unnecessarily.**
 
+## 1. Prepare production configuration locally
 
-resource "aws_subnet" "private" {
-  vpc_id            = aws_vpc.corvanta.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "eu-central-1a"
+Inspect the existing `.env`, `.env.example`, configuration validation, and source code without printing secret values.
 
-  tags = {
-    Name        = "corvanta-private-subnet"
-    Project     = "Corvanta"
-    Environment = "practice"
-    ManagedBy   = "Terraform"
-  }
-}
+- Reuse the existing `MONGO_URI` if it is valid for production and connects to the existing Atlas database.
+- Check whether `JWT_ACCESS_SECRET` and `JWT_REFRESH_SECRET` already exist and satisfy production validation.
+- If either JWT secret is missing or is a development placeholder, generate a strong independent secret locally and securely add it to the production configuration. Do not display it.
+- Preserve valid existing configuration, but do not blindly copy development-only values or unnecessary secrets.
+- Set `NODE_ENV=production` and `PORT=5000`.
+- Configure `QUEUE_TYPE=sqs`, the existing queue URL `https://sqs.eu-central-1.amazonaws.com/072718160542/Corvanta-production-queue`, and `AWS_REGION=eu-central-1`.
+- Do not configure static AWS access keys if the existing SDK can use the EC2 instance role.
+- Check whether optional OpenAI, Resend, Cloudinary, and frontend URL settings are required at startup. Leave optional integrations disabled or unconfigured only if the existing code supports that.
 
-resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.corvanta.id
+Protect `.env` with restrictive permissions. Ensure it is ignored by Git and never print, commit, or transfer it as part of the source-code sync.
 
-  tags = {
-    Name        = "corvanta-public-route-table"
-    Project     = "Corvanta"
-    Environment = "practice"
-    ManagedBy   = "Terraform"
-  }
-}
+If the existing Atlas URI is missing, invalid, or unsuitable for production, stop and report the variable name and issue without revealing the URI or its credentials.
 
-resource "aws_route" "public_internet" {
-  route_table_id         = aws_route_table.public.id
-  destination_cidr_block = "0.0.0.0/0"
-  gateway_id             = aws_internet_gateway.corvanta.id
-}
+## 2. Install and deploy to the existing EC2 instance
 
-resource "aws_route_table_association" "public" {
-  subnet_id      = aws_subnet.public.id
-  route_table_id = aws_route_table.public.id
-}
+After the required configuration has been validated:
 
+1. Connect using the existing SSH key and Ubuntu user.
+2. Install a Node.js version compatible with the project's `package.json` and lockfile. Do not assume Node.js 18 is correct without checking compatibility.
+3. Transfer `/home/louis/corvanta/corvanta-backend` to `/home/ubuntu/corvanta-backend`, excluding `.git`, `node_modules`, `.env`, and other unnecessary development files.
+4. Preserve any existing remote application files or configuration that would otherwise be overwritten.
+5. Run `npm ci --omit=dev` if supported by the project's lockfile.
+6. Create `/home/ubuntu/corvanta-backend/.env` securely with the validated production settings. Transfer secrets through a protected method, not source-control files, shell command arguments, or logs.
+7. Create and enable a persistent `corvanta-backend` systemd service, using the actual startup command specified by the repository.
+8. Start the service and inspect its status.
 
-resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.corvanta.id
+Do not open port 5000 publicly or modify security groups.
 
-  tags = {
-    Name        = "corvanta-private-route-table"
-    Project     = "Corvanta"
-    Environment = "practice"
-    ManagedBy   = "Terraform"
-  }
-}
+## 3. Verify the application
 
-resource "aws_route_table_association" "private" {
-  subnet_id      = aws_subnet.private.id
-  route_table_id = aws_route_table.private.id
-}
+- Test the documented health endpoint or root route on `localhost:5000`.
+- Confirm the service starts and connects to MongoDB Atlas.
+- Check SQS initialization if the application uses it.
+- Inspect only the minimum necessary logs and redact sensitive information.
+- If startup or connectivity fails, diagnose the specific error and make only a justified correction. Do not invent credentials or repeatedly restart a failing service without addressing the cause.
 
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ cd ~/corvanta/corvanta-terraform
+## Restrictions
 
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ 
+- Do not rerun Terraform apply or destroy.
+- Do not recreate AWS infrastructure or the MongoDB database.
+- Do not change Atlas network access or database users automatically.
+- Do not expose secrets, tokens, or private keys.
+- Do not commit or push Git changes.
 
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ grep -RniE 'aws_vpc\.corvanta|aws_subnet\.public|aws_subnet\.private|aws_internet_gateway\.corvanta|aws_route_table\.public|aws_route_table\.private|aws_route\.public_internet|aws_route_table_association\.(public|private)' --include="*.tf" .
+Proceed with the actual deployment where prerequisites are satisfied. If a required secret or configuration value genuinely cannot be recovered from the existing local configuration, stop and tell me exactly which variable is missing, without exposing any values.
 
-./modules/network/main.tf:15:  vpc_id = aws_vpc.corvanta.id
-
-./modules/network/main.tf:26:  vpc_id                  = aws_vpc.corvanta.id
-
-./modules/network/main.tf:40:  vpc_id            = aws_vpc.corvanta.id
-
-./modules/network/main.tf:53:  vpc_id = aws_vpc.corvanta.id
-
-./modules/network/main.tf:64:  route_table_id         = aws_route_table.public.id
-
-./modules/network/main.tf:66:  gateway_id             = aws_internet_gateway.corvanta.id
-
-./modules/network/main.tf:70:  subnet_id      = aws_subnet.public.id
-
-./modules/network/main.tf:71:  route_table_id = aws_route_table.public.id
-
-./modules/network/main.tf:75:  vpc_id = aws_vpc.corvanta.id
-
-./modules/network/main.tf:86:  subnet_id      = aws_subnet.private.id
-
-./modules/network/main.tf:87:  route_table_id = aws_route_table.private.id
-
-./modules/network/outputs.tf:3:  value       = aws_vpc.corvanta.id
-
-./modules/network/outputs.tf:8:  value       = aws_subnet.public.id
-
-./modules/network/outputs.tf:13:  value       = aws_subnet.private.id
-
-./security.tf:4:  vpc_id      = aws_vpc.corvanta.id
-
-./ec2.tf:6:  subnet_id = aws_subnet.public.id
-
-./migration.tf:2:  from = aws_vpc.corvanta
-
-./migration.tf:3:  to   = module.network.aws_vpc.corvanta
-
-./migration.tf:7:  from = aws_internet_gateway.corvanta
-
-./migration.tf:8:  to   = module.network.aws_internet_gateway.corvanta
-
-./migration.tf:12:  from = aws_subnet.public
-
-./migration.tf:13:  to   = module.network.aws_subnet.public
-
-./migration.tf:17:  from = aws_subnet.private
-
-./migration.tf:18:  to   = module.network.aws_subnet.private
-
-./migration.tf:22:  from = aws_route_table.public
-
-./migration.tf:23:  to   = module.network.aws_route_table.public
-
-./migration.tf:27:  from = aws_route.public_internet
-
-./migration.tf:28:  to   = module.network.aws_route.public_internet
-
-./migration.tf:32:  from = aws_route_table_association.public
-
-./migration.tf:33:  to   = module.network.aws_route_table_association.public
-
-./migration.tf:37:  from = aws_route_table.private
-
-./migration.tf:38:  to   = module.network.aws_route_table.private
-
-./migration.tf:42:  from = aws_route_table_association.private
-
-./migration.tf:43:  to   = module.network.aws_route_table_association.private
-
-./main.tf:47:  vpc_id = aws_vpc.corvanta.id
-
-./main.tf:58:  vpc_id                  = aws_vpc.corvanta.id
-
-./main.tf:73:  vpc_id            = aws_vpc.corvanta.id
-
-./main.tf:86:  vpc_id = aws_vpc.corvanta.id
-
-./main.tf:97:  route_table_id         = aws_route_table.public.id
-
-./main.tf:99:  gateway_id             = aws_internet_gateway.corvanta.id
-
-./main.tf:103:  subnet_id      = aws_subnet.public.id
-
-./main.tf:104:  route_table_id = aws_route_table.public.id
-
-./main.tf:109:  vpc_id = aws_vpc.corvanta.id
-
-./main.tf:120:  subnet_id      = aws_subnet.private.id
-
-./main.tf:121:  route_table_id = aws_route_table.private.id
-
-./outputs.tf:3:  value       = aws_vpc.corvanta.id
-
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ 
-
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ cd ~/corvanta/corvanta-terraform
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ 
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ grep -RniE 'aws_vpc\.corvanta|aws_subnet\.public|aws_subnet\.private|aws_internet_gateway\.corvanta|aws_route_table\.public|aws_route_table\.private|aws_route\.public_internet|aws_route_table_association\.(public|private)' --include="*.tf" .
-./modules/network/main.tf:15:  vpc_id = aws_vpc.corvanta.id
-./modules/network/main.tf:26:  vpc_id                  = aws_vpc.corvanta.id
-./modules/network/main.tf:40:  vpc_id            = aws_vpc.corvanta.id
-./modules/network/main.tf:53:  vpc_id = aws_vpc.corvanta.id
-./modules/network/main.tf:64:  route_table_id         = aws_route_table.public.id
-./modules/network/main.tf:66:  gateway_id             = aws_internet_gateway.corvanta.id
-./modules/network/main.tf:70:  subnet_id      = aws_subnet.public.id
-./modules/network/main.tf:71:  route_table_id = aws_route_table.public.id
-./modules/network/main.tf:75:  vpc_id = aws_vpc.corvanta.id
-./modules/network/main.tf:86:  subnet_id      = aws_subnet.private.id
-./modules/network/main.tf:87:  route_table_id = aws_route_table.private.id
-./modules/network/outputs.tf:3:  value       = aws_vpc.corvanta.id
-./modules/network/outputs.tf:8:  value       = aws_subnet.public.id
-./modules/network/outputs.tf:13:  value       = aws_subnet.private.id
-./security.tf:4:  vpc_id      = aws_vpc.corvanta.id
-./migration.tf:2:  from = aws_vpc.corvanta
-./migration.tf:3:  to   = module.network.aws_vpc.corvanta
-./migration.tf:7:  from = aws_internet_gateway.corvanta
-./migration.tf:8:  to   = module.network.aws_internet_gateway.corvanta
-./migration.tf:12:  from = aws_subnet.public
-./migration.tf:13:  to   = module.network.aws_subnet.public
-./migration.tf:17:  from = aws_subnet.private
-./migration.tf:18:  to   = module.network.aws_subnet.private
-./migration.tf:22:  from = aws_route_table.public
-./migration.tf:23:  to   = module.network.aws_route_table.public
-./migration.tf:27:  from = aws_route.public_internet
-./migration.tf:28:  to   = module.network.aws_route.public_internet
-./migration.tf:32:  from = aws_route_table_association.public
-./migration.tf:33:  to   = module.network.aws_route_table_association.public
-./migration.tf:37:  from = aws_route_table.private
-./migration.tf:38:  to   = module.network.aws_route_table.private
-./migration.tf:42:  from = aws_route_table_association.private
-./migration.tf:43:  to   = module.network.aws_route_table_association.private
-./main.tf:58:  vpc_id                  = aws_vpc.corvanta.id
-./main.tf:73:  vpc_id            = aws_vpc.corvanta.id
-./main.tf:97:  route_table_id         = aws_route_table.public.id
-./main.tf:99:  gateway_id             = aws_internet_gateway.corvanta.id
-./main.tf:103:  subnet_id      = aws_subnet.public.id
-./main.tf:104:  route_table_id = aws_route_table.public.id
-./main.tf:120:  subnet_id      = aws_subnet.private.id
-./main.tf:121:  route_table_id = aws_route_table.private.id
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ cd ~/corvanta/corvanta-terraform
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ 
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ terraform fmt -recursive
-security.tf
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ terraform init
-Initializing the backend...
-
-Initializing provider plugins...
-- Reusing previous version of hashicorp/aws from the dependency lock file
-- Using previously-installed hashicorp/aws v6.65.0
-
-Terraform has been successfully initialized!
-
-You may now begin working with Terraform. Try running "terraform plan" to see
-any changes that are required for your infrastructure. All Terraform commands
-should now work.
-
-If you ever set or change modules or backend configuration for Terraform,
-rerun this command to reinitialize your working directory. If you forget, other
-commands will detect it and remind you to do so if necessary.
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ terraform validate
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on main.tf line 47, in resource "aws_internet_gateway" "corvanta":
-│   47:   vpc_id = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on main.tf line 86, in resource "aws_route_table" "public":
-│   86:   vpc_id = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on main.tf line 109, in resource "aws_route_table" "private":
-│  109:   vpc_id = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on outputs.tf line 3, in output "vpc_id":
-│    3:   value       = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on security.tf line 4, in resource "aws_security_group" "backend":
-│    4:   vpc_id      = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ terraform plan
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on main.tf line 47, in resource "aws_internet_gateway" "corvanta":
-│   47:   vpc_id = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on main.tf line 86, in resource "aws_route_table" "public":
-│   86:   vpc_id = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on main.tf line 109, in resource "aws_route_table" "private":
-│  109:   vpc_id = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on outputs.tf line 3, in output "vpc_id":
-│    3:   value       = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-╷
-│ Error: Reference to undeclared module
-│ 
-│   on security.tf line 4, in resource "aws_security_group" "backend":
-│    4:   vpc_id      = module.network.vpc_id
-│ 
-│ No module call named "network" is declared in the root module.
-╵
-louis@louis-X550CA:~/corvanta/corvanta-terraform$ 
+Finish with a report of the installation, deployment, systemd status, and application health-check result.

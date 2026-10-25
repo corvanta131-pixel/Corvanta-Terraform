@@ -1,11 +1,11 @@
-
 resource "aws_security_group" "backend" {
-  name        = "corvanta-practice-backend-sg"
-  description = "Security group for Corvanta practice backend EC2"
-  vpc_id      = var.vpc_id
+  name        = "${var.project_name}-${var.environment}-backend-sg"
+  description = "Security group for Corvanta backend EC2"
+
+  vpc_id = var.vpc_id
 
   ingress {
-    description = "HTTP from internet for practice"
+    description = "HTTP from internet for production"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
@@ -21,11 +21,11 @@ resource "aws_security_group" "backend" {
   }
 
   ingress {
-    description = "SSH for practice administration"
+    description = "SSH from approved CIDR only"
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = [var.admin_cidr_block]
   }
 
   egress {
@@ -37,7 +37,7 @@ resource "aws_security_group" "backend" {
   }
 
   tags = {
-    Name        = "corvanta-backend-sg"
+    Name        = "${var.project_name}-${var.environment}-backend-sg"
     Project     = var.project_name
     Environment = var.environment
     ManagedBy   = "Terraform"
@@ -45,19 +45,23 @@ resource "aws_security_group" "backend" {
 }
 
 resource "aws_key_pair" "ec2" {
-  key_name   = "corvanta-practice-ec2-key"
-  public_key = file(pathexpand(var.public_key_path))
+  key_name   = var.key_pair_name
+  public_key = file(pathexpand(var.ssh_public_key_path))
 
   tags = {
-    Name        = "corvanta-practice-ec2-key"
+    Name        = var.key_pair_name
     Project     = var.project_name
     Environment = var.environment
     ManagedBy   = "Terraform"
   }
 }
 
+data "aws_ssm_parameter" "ubuntu_ami" {
+  name = var.ami_name_filter
+}
+
 resource "aws_instance" "backend" {
-  ami                         = "ami-03f92a7a8a26c81af"
+  ami                         = data.aws_ssm_parameter.ubuntu_ami.value
   instance_type               = var.instance_type
   subnet_id                   = var.subnet_id
   vpc_security_group_ids      = [aws_security_group.backend.id]
@@ -65,8 +69,20 @@ resource "aws_instance" "backend" {
   iam_instance_profile        = var.iam_instance_profile_name
   associate_public_ip_address = true
 
+  metadata_options {
+    http_endpoint = "enabled"
+    http_tokens   = "required"
+  }
+
+  root_block_device {
+    encrypted             = true
+    delete_on_termination = true
+    volume_size           = 8
+    volume_type           = "gp3"
+  }
+
   tags = {
-    Name        = "corvanta-backend"
+    Name        = "${var.project_name}-${var.environment}-backend"
     Project     = var.project_name
     Environment = var.environment
     ManagedBy   = "Terraform"
@@ -77,7 +93,7 @@ resource "aws_eip" "backend" {
   domain = "vpc"
 
   tags = {
-    Name        = "corvanta-backend-eip"
+    Name        = "${var.project_name}-${var.environment}-backend-eip"
     Project     = var.project_name
     Environment = var.environment
     ManagedBy   = "Terraform"

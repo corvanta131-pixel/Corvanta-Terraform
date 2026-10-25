@@ -13,9 +13,22 @@ crash.*.log
 # Variable files that may contain secrets
 *.tfvars
 *.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
 
 # Local override files
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+
+# Private key material — never commit
+*.pem
+*.key
+id_ed25519*
+id_rsa*
+id_ecdsa*
+id_dsa*
+
+# Terraform state lock files
+.terraform.tfstate.lock.info

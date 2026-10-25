@@ -1,11 +1,18 @@
-#!/bin/bash
+#!/usr/bin/env bash
+#
+# Safe preparation and review helper for the Corvanta Terraform project.
+#
+# It formats, validates and plans the configuration, then stops.
+# It never applies changes: applying is a deliberate, reviewed manual step.
 
-set -e
+set -euo pipefail
+
+cd "$(dirname "$0")"
 
 echo "========================================"
 echo " Terraform Format"
 echo "========================================"
-terraform fmt
+terraform fmt -recursive
 
 echo
 echo "========================================"
@@ -15,24 +22,17 @@ terraform validate
 
 echo
 echo "========================================"
-echo " Terraform Plan"
+echo " Terraform Plan (review only, no changes are made)"
 echo "========================================"
-terraform plan
+terraform plan -out=corvanta-review.tfplan
 
 echo
 echo "========================================"
-read -p "Apply this Terraform plan? Type yes to continue: " answer
-
-if [ "$answer" = "yes" ]; then
-    echo
-    echo "========================================"
-    echo " Terraform Apply"
-    echo "========================================"
-    terraform apply -auto-approve
-
-    echo
-    echo "Terraform apply completed."
-else
-    echo
-    echo "Apply cancelled."
-fi
+echo " Review the plan above before applying."
+echo "========================================"
+echo
+echo "Apply explicitly and only after the plan has been reviewed:"
+echo "  terraform show corvanta-review.tfplan"
+echo "  terraform apply corvanta-review.tfplan"
+echo
+echo "This script intentionally does not run 'terraform apply'."

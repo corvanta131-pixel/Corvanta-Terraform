@@ -1,47 +1,253 @@
-digraph G {
-  rankdir = "RL";
-  node [shape = rect, fontname = "sans-serif"];
-  "data.aws_caller_identity.current" [label="data.aws_caller_identity.current"];
-  "aws_eip.backend" [label="aws_eip.backend"];
-  "aws_eip_association.backend" [label="aws_eip_association.backend"];
-  "aws_iam_instance_profile.corvanta_ec2" [label="aws_iam_instance_profile.corvanta_ec2"];
-  "aws_iam_policy.corvanta_s3" [label="aws_iam_policy.corvanta_s3"];
-  "aws_iam_role.corvanta_ec2" [label="aws_iam_role.corvanta_ec2"];
-  "aws_iam_role_policy_attachment.corvanta_s3" [label="aws_iam_role_policy_attachment.corvanta_s3"];
-  "aws_instance.backend" [label="aws_instance.backend"];
-  "aws_internet_gateway.corvanta" [label="aws_internet_gateway.corvanta"];
-  "aws_key_pair.ec2" [label="aws_key_pair.ec2"];
-  "aws_route.public_internet" [label="aws_route.public_internet"];
-  "aws_route_table.private" [label="aws_route_table.private"];
-  "aws_route_table.public" [label="aws_route_table.public"];
-  "aws_route_table_association.private" [label="aws_route_table_association.private"];
-  "aws_route_table_association.public" [label="aws_route_table_association.public"];
-  "aws_s3_bucket.practice" [label="aws_s3_bucket.practice"];
-  "aws_security_group.backend" [label="aws_security_group.backend"];
-  "aws_sqs_queue.corvanta" [label="aws_sqs_queue.corvanta"];
-  "aws_subnet.private" [label="aws_subnet.private"];
-  "aws_subnet.public" [label="aws_subnet.public"];
-  "aws_vpc.corvanta" [label="aws_vpc.corvanta"];
-  "aws_eip_association.backend" -> "aws_eip.backend";
-  "aws_eip_association.backend" -> "aws_instance.backend";
-  "aws_iam_instance_profile.corvanta_ec2" -> "aws_iam_role.corvanta_ec2";
-  "aws_iam_policy.corvanta_s3" -> "aws_s3_bucket.practice";
-  "aws_iam_role_policy_attachment.corvanta_s3" -> "aws_iam_policy.corvanta_s3";
-  "aws_iam_role_policy_attachment.corvanta_s3" -> "aws_iam_role.corvanta_ec2";
-  "aws_instance.backend" -> "aws_iam_instance_profile.corvanta_ec2";
-  "aws_instance.backend" -> "aws_security_group.backend";
-  "aws_instance.backend" -> "aws_subnet.public";
-  "aws_internet_gateway.corvanta" -> "aws_vpc.corvanta";
-  "aws_route.public_internet" -> "aws_internet_gateway.corvanta";
-  "aws_route.public_internet" -> "aws_route_table.public";
-  "aws_route_table.private" -> "aws_vpc.corvanta";
-  "aws_route_table.public" -> "aws_vpc.corvanta";
-  "aws_route_table_association.private" -> "aws_route_table.private";
-  "aws_route_table_association.private" -> "aws_subnet.private";
-  "aws_route_table_association.public" -> "aws_route_table.public";
-  "aws_route_table_association.public" -> "aws_subnet.public";
-  "aws_s3_bucket.practice" -> "data.aws_caller_identity.current";
-  "aws_security_group.backend" -> "aws_vpc.corvanta";
-  "aws_subnet.private" -> "aws_vpc.corvanta";
-  "aws_subnet.public" -> "aws_vpc.corvanta";
+digraph {
+	compound = "true"
+	newrank = "true"
+	subgraph "root" {
+		"[root] aws_iam_instance_profile.corvanta_ec2 (orphan)" [label = "aws_iam_instance_profile.corvanta_ec2", shape = "box"]
+		"[root] aws_iam_policy.corvanta_s3 (orphan)" [label = "aws_iam_policy.corvanta_s3", shape = "box"]
+		"[root] aws_iam_role.corvanta_ec2 (orphan)" [label = "aws_iam_role.corvanta_ec2", shape = "box"]
+		"[root] aws_iam_role_policy_attachment.corvanta_s3 (orphan)" [label = "aws_iam_role_policy_attachment.corvanta_s3", shape = "box"]
+		"[root] aws_s3_bucket.practice (orphan)" [label = "aws_s3_bucket.practice", shape = "box"]
+		"[root] aws_sqs_queue.corvanta (orphan)" [label = "aws_sqs_queue.corvanta", shape = "box"]
+		"[root] data.aws_caller_identity.current (expand)" [label = "data.aws_caller_identity.current", shape = "box"]
+		"[root] module.compute.aws_eip.backend (expand)" [label = "module.compute.aws_eip.backend", shape = "box"]
+		"[root] module.compute.aws_eip_association.backend (expand)" [label = "module.compute.aws_eip_association.backend", shape = "box"]
+		"[root] module.compute.aws_instance.backend (expand)" [label = "module.compute.aws_instance.backend", shape = "box"]
+		"[root] module.compute.aws_key_pair.ec2 (expand)" [label = "module.compute.aws_key_pair.ec2", shape = "box"]
+		"[root] module.compute.aws_security_group.backend (expand)" [label = "module.compute.aws_security_group.backend", shape = "box"]
+		"[root] module.compute.data.aws_ssm_parameter.ubuntu_ami (expand)" [label = "module.compute.data.aws_ssm_parameter.ubuntu_ami", shape = "box"]
+		"[root] module.iam.aws_iam_instance_profile.corvanta_ec2 (expand)" [label = "module.iam.aws_iam_instance_profile.corvanta_ec2", shape = "box"]
+		"[root] module.iam.aws_iam_policy.corvanta_s3 (expand)" [label = "module.iam.aws_iam_policy.corvanta_s3", shape = "box"]
+		"[root] module.iam.aws_iam_policy.corvanta_sqs (expand)" [label = "module.iam.aws_iam_policy.corvanta_sqs", shape = "box"]
+		"[root] module.iam.aws_iam_role.corvanta_ec2 (expand)" [label = "module.iam.aws_iam_role.corvanta_ec2", shape = "box"]
+		"[root] module.iam.aws_iam_role_policy_attachment.corvanta_s3 (expand)" [label = "module.iam.aws_iam_role_policy_attachment.corvanta_s3", shape = "box"]
+		"[root] module.iam.aws_iam_role_policy_attachment.corvanta_sqs (expand)" [label = "module.iam.aws_iam_role_policy_attachment.corvanta_sqs", shape = "box"]
+		"[root] module.messaging.aws_sqs_queue.corvanta (expand)" [label = "module.messaging.aws_sqs_queue.corvanta", shape = "box"]
+		"[root] module.network.aws_internet_gateway.corvanta (expand)" [label = "module.network.aws_internet_gateway.corvanta", shape = "box"]
+		"[root] module.network.aws_route.public_internet (expand)" [label = "module.network.aws_route.public_internet", shape = "box"]
+		"[root] module.network.aws_route_table.private (expand)" [label = "module.network.aws_route_table.private", shape = "box"]
+		"[root] module.network.aws_route_table.public (expand)" [label = "module.network.aws_route_table.public", shape = "box"]
+		"[root] module.network.aws_route_table_association.private (expand)" [label = "module.network.aws_route_table_association.private", shape = "box"]
+		"[root] module.network.aws_route_table_association.public (expand)" [label = "module.network.aws_route_table_association.public", shape = "box"]
+		"[root] module.network.aws_subnet.private (expand)" [label = "module.network.aws_subnet.private", shape = "box"]
+		"[root] module.network.aws_subnet.public (expand)" [label = "module.network.aws_subnet.public", shape = "box"]
+		"[root] module.network.aws_vpc.corvanta (expand)" [label = "module.network.aws_vpc.corvanta", shape = "box"]
+		"[root] module.storage.aws_s3_bucket.corvanta (expand)" [label = "module.storage.aws_s3_bucket.corvanta", shape = "box"]
+		"[root] module.storage.aws_s3_bucket_public_access_block.corvanta (expand)" [label = "module.storage.aws_s3_bucket_public_access_block.corvanta", shape = "box"]
+		"[root] module.storage.aws_s3_bucket_server_side_encryption_configuration.corvanta (expand)" [label = "module.storage.aws_s3_bucket_server_side_encryption_configuration.corvanta", shape = "box"]
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"]" [label = "provider[\"registry.terraform.io/hashicorp/aws\"]", shape = "diamond"]
+		"[root] var.admin_cidr_block" [label = "var.admin_cidr_block", shape = "note"]
+		"[root] var.aws_region" [label = "var.aws_region", shape = "note"]
+		"[root] var.backend_instance_type" [label = "var.backend_instance_type", shape = "note"]
+		"[root] var.environment" [label = "var.environment", shape = "note"]
+		"[root] var.project_name" [label = "var.project_name", shape = "note"]
+		"[root] var.ssh_public_key_path" [label = "var.ssh_public_key_path", shape = "note"]
+		"[root] aws_iam_instance_profile.corvanta_ec2 (orphan)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] aws_iam_policy.corvanta_s3 (orphan)" -> "[root] aws_iam_role_policy_attachment.corvanta_s3 (orphan)"
+		"[root] aws_iam_role.corvanta_ec2 (orphan)" -> "[root] aws_iam_instance_profile.corvanta_ec2 (orphan)"
+		"[root] aws_iam_role.corvanta_ec2 (orphan)" -> "[root] aws_iam_role_policy_attachment.corvanta_s3 (orphan)"
+		"[root] aws_iam_role_policy_attachment.corvanta_s3 (orphan)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] aws_s3_bucket.practice (orphan)" -> "[root] aws_iam_policy.corvanta_s3 (orphan)"
+		"[root] aws_sqs_queue.corvanta (orphan)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] data.aws_caller_identity.current (expand)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] local.common_tags (expand)" -> "[root] var.environment (validation)"
+		"[root] local.common_tags (expand)" -> "[root] var.project_name"
+		"[root] local.name_prefix (expand)" -> "[root] var.environment (validation)"
+		"[root] local.name_prefix (expand)" -> "[root] var.project_name"
+		"[root] module.compute (close)" -> "[root] module.compute.aws_eip_association.backend (expand)"
+		"[root] module.compute (close)" -> "[root] module.compute.output.backend_ami_id (expand)"
+		"[root] module.compute (close)" -> "[root] module.compute.output.backend_elastic_ip (expand)"
+		"[root] module.compute (close)" -> "[root] module.compute.output.backend_instance_id (expand)"
+		"[root] module.compute (close)" -> "[root] module.compute.output.backend_private_ip (expand)"
+		"[root] module.compute (close)" -> "[root] module.compute.output.backend_public_ip (expand)"
+		"[root] module.compute (close)" -> "[root] module.compute.output.backend_security_group_id (expand)"
+		"[root] module.compute.aws_eip.backend (expand)" -> "[root] module.compute.var.environment (expand)"
+		"[root] module.compute.aws_eip.backend (expand)" -> "[root] module.compute.var.project_name (expand)"
+		"[root] module.compute.aws_eip.backend (expand)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] module.compute.aws_eip_association.backend (expand)" -> "[root] module.compute.aws_eip.backend (expand)"
+		"[root] module.compute.aws_eip_association.backend (expand)" -> "[root] module.compute.aws_instance.backend (expand)"
+		"[root] module.compute.aws_instance.backend (expand)" -> "[root] module.compute.aws_key_pair.ec2 (expand)"
+		"[root] module.compute.aws_instance.backend (expand)" -> "[root] module.compute.aws_security_group.backend (expand)"
+		"[root] module.compute.aws_instance.backend (expand)" -> "[root] module.compute.data.aws_ssm_parameter.ubuntu_ami (expand)"
+		"[root] module.compute.aws_instance.backend (expand)" -> "[root] module.compute.var.iam_instance_profile_name (expand)"
+		"[root] module.compute.aws_instance.backend (expand)" -> "[root] module.compute.var.instance_type (expand)"
+		"[root] module.compute.aws_instance.backend (expand)" -> "[root] module.compute.var.subnet_id (expand)"
+		"[root] module.compute.aws_key_pair.ec2 (expand)" -> "[root] module.compute.var.environment (expand)"
+		"[root] module.compute.aws_key_pair.ec2 (expand)" -> "[root] module.compute.var.key_pair_name (expand)"
+		"[root] module.compute.aws_key_pair.ec2 (expand)" -> "[root] module.compute.var.project_name (expand)"
+		"[root] module.compute.aws_key_pair.ec2 (expand)" -> "[root] module.compute.var.ssh_public_key_path (validation)"
+		"[root] module.compute.aws_key_pair.ec2 (expand)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] module.compute.aws_security_group.backend (expand)" -> "[root] module.compute.var.admin_cidr_block (validation)"
+		"[root] module.compute.aws_security_group.backend (expand)" -> "[root] module.compute.var.environment (expand)"
+		"[root] module.compute.aws_security_group.backend (expand)" -> "[root] module.compute.var.project_name (expand)"
+		"[root] module.compute.aws_security_group.backend (expand)" -> "[root] module.compute.var.vpc_id (expand)"
+		"[root] module.compute.data.aws_ssm_parameter.ubuntu_ami (expand)" -> "[root] module.compute.var.ami_name_filter (expand)"
+		"[root] module.compute.data.aws_ssm_parameter.ubuntu_ami (expand)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] module.compute.output.backend_ami_id (expand)" -> "[root] module.compute.data.aws_ssm_parameter.ubuntu_ami (expand)"
+		"[root] module.compute.output.backend_elastic_ip (expand)" -> "[root] module.compute.aws_eip.backend (expand)"
+		"[root] module.compute.output.backend_instance_id (expand)" -> "[root] module.compute.aws_instance.backend (expand)"
+		"[root] module.compute.output.backend_private_ip (expand)" -> "[root] module.compute.aws_instance.backend (expand)"
+		"[root] module.compute.output.backend_public_ip (expand)" -> "[root] module.compute.aws_instance.backend (expand)"
+		"[root] module.compute.output.backend_security_group_id (expand)" -> "[root] module.compute.aws_security_group.backend (expand)"
+		"[root] module.compute.var.admin_cidr_block (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.admin_cidr_block (expand)" -> "[root] var.admin_cidr_block (validation)"
+		"[root] module.compute.var.admin_cidr_block (validation)" -> "[root] module.compute.var.admin_cidr_block (expand)"
+		"[root] module.compute.var.ami_name_filter (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.environment (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.environment (expand)" -> "[root] var.environment (validation)"
+		"[root] module.compute.var.iam_instance_profile_name (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.iam_instance_profile_name (expand)" -> "[root] module.iam.output.iam_instance_profile_name (expand)"
+		"[root] module.compute.var.instance_type (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.instance_type (expand)" -> "[root] var.backend_instance_type"
+		"[root] module.compute.var.key_pair_name (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.project_name (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.project_name (expand)" -> "[root] var.project_name"
+		"[root] module.compute.var.ssh_public_key_path (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.ssh_public_key_path (expand)" -> "[root] var.ssh_public_key_path (validation)"
+		"[root] module.compute.var.ssh_public_key_path (validation)" -> "[root] module.compute.var.ssh_public_key_path (expand)"
+		"[root] module.compute.var.subnet_id (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.subnet_id (expand)" -> "[root] module.network.output.public_subnet_id (expand)"
+		"[root] module.compute.var.vpc_id (expand)" -> "[root] module.compute (expand)"
+		"[root] module.compute.var.vpc_id (expand)" -> "[root] module.network.output.vpc_id (expand)"
+		"[root] module.iam (close)" -> "[root] module.iam.aws_iam_role_policy_attachment.corvanta_s3 (expand)"
+		"[root] module.iam (close)" -> "[root] module.iam.aws_iam_role_policy_attachment.corvanta_sqs (expand)"
+		"[root] module.iam (close)" -> "[root] module.iam.output.iam_instance_profile_arn (expand)"
+		"[root] module.iam (close)" -> "[root] module.iam.output.iam_instance_profile_name (expand)"
+		"[root] module.iam.aws_iam_instance_profile.corvanta_ec2 (expand)" -> "[root] module.iam.aws_iam_role.corvanta_ec2 (expand)"
+		"[root] module.iam.aws_iam_policy.corvanta_s3 (expand)" -> "[root] module.iam.var.environment (expand)"
+		"[root] module.iam.aws_iam_policy.corvanta_s3 (expand)" -> "[root] module.iam.var.project_name (expand)"
+		"[root] module.iam.aws_iam_policy.corvanta_s3 (expand)" -> "[root] module.iam.var.s3_bucket_arn (expand)"
+		"[root] module.iam.aws_iam_policy.corvanta_sqs (expand)" -> "[root] module.iam.var.environment (expand)"
+		"[root] module.iam.aws_iam_policy.corvanta_sqs (expand)" -> "[root] module.iam.var.project_name (expand)"
+		"[root] module.iam.aws_iam_policy.corvanta_sqs (expand)" -> "[root] module.iam.var.sqs_queue_arn (expand)"
+		"[root] module.iam.aws_iam_role.corvanta_ec2 (expand)" -> "[root] module.iam.var.environment (expand)"
+		"[root] module.iam.aws_iam_role.corvanta_ec2 (expand)" -> "[root] module.iam.var.project_name (expand)"
+		"[root] module.iam.aws_iam_role.corvanta_ec2 (expand)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] module.iam.aws_iam_role_policy_attachment.corvanta_s3 (expand)" -> "[root] module.iam.aws_iam_policy.corvanta_s3 (expand)"
+		"[root] module.iam.aws_iam_role_policy_attachment.corvanta_s3 (expand)" -> "[root] module.iam.aws_iam_role.corvanta_ec2 (expand)"
+		"[root] module.iam.aws_iam_role_policy_attachment.corvanta_sqs (expand)" -> "[root] module.iam.aws_iam_policy.corvanta_sqs (expand)"
+		"[root] module.iam.aws_iam_role_policy_attachment.corvanta_sqs (expand)" -> "[root] module.iam.aws_iam_role.corvanta_ec2 (expand)"
+		"[root] module.iam.output.iam_instance_profile_arn (expand)" -> "[root] module.iam.aws_iam_instance_profile.corvanta_ec2 (expand)"
+		"[root] module.iam.output.iam_instance_profile_name (expand)" -> "[root] module.iam.aws_iam_instance_profile.corvanta_ec2 (expand)"
+		"[root] module.iam.var.environment (expand)" -> "[root] module.iam (expand)"
+		"[root] module.iam.var.environment (expand)" -> "[root] var.environment (validation)"
+		"[root] module.iam.var.project_name (expand)" -> "[root] module.iam (expand)"
+		"[root] module.iam.var.project_name (expand)" -> "[root] var.project_name"
+		"[root] module.iam.var.s3_bucket_arn (expand)" -> "[root] module.iam (expand)"
+		"[root] module.iam.var.s3_bucket_arn (expand)" -> "[root] module.storage.output.s3_bucket_arn (expand)"
+		"[root] module.iam.var.sqs_queue_arn (expand)" -> "[root] module.iam (expand)"
+		"[root] module.iam.var.sqs_queue_arn (expand)" -> "[root] module.messaging.output.sqs_queue_arn (expand)"
+		"[root] module.messaging (close)" -> "[root] module.messaging.output.sqs_queue_arn (expand)"
+		"[root] module.messaging (close)" -> "[root] module.messaging.output.sqs_queue_name (expand)"
+		"[root] module.messaging (close)" -> "[root] module.messaging.output.sqs_queue_url (expand)"
+		"[root] module.messaging.aws_sqs_queue.corvanta (expand)" -> "[root] module.messaging.var.environment (expand)"
+		"[root] module.messaging.aws_sqs_queue.corvanta (expand)" -> "[root] module.messaging.var.message_retention_seconds (expand)"
+		"[root] module.messaging.aws_sqs_queue.corvanta (expand)" -> "[root] module.messaging.var.project_name (expand)"
+		"[root] module.messaging.aws_sqs_queue.corvanta (expand)" -> "[root] module.messaging.var.queue_name (expand)"
+		"[root] module.messaging.aws_sqs_queue.corvanta (expand)" -> "[root] module.messaging.var.visibility_timeout_seconds (expand)"
+		"[root] module.messaging.aws_sqs_queue.corvanta (expand)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] module.messaging.output.sqs_queue_arn (expand)" -> "[root] module.messaging.aws_sqs_queue.corvanta (expand)"
+		"[root] module.messaging.output.sqs_queue_name (expand)" -> "[root] module.messaging.aws_sqs_queue.corvanta (expand)"
+		"[root] module.messaging.output.sqs_queue_url (expand)" -> "[root] module.messaging.aws_sqs_queue.corvanta (expand)"
+		"[root] module.messaging.var.environment (expand)" -> "[root] module.messaging (expand)"
+		"[root] module.messaging.var.environment (expand)" -> "[root] var.environment (validation)"
+		"[root] module.messaging.var.message_retention_seconds (expand)" -> "[root] module.messaging (expand)"
+		"[root] module.messaging.var.project_name (expand)" -> "[root] module.messaging (expand)"
+		"[root] module.messaging.var.project_name (expand)" -> "[root] var.project_name"
+		"[root] module.messaging.var.queue_name (expand)" -> "[root] module.messaging (expand)"
+		"[root] module.messaging.var.visibility_timeout_seconds (expand)" -> "[root] module.messaging (expand)"
+		"[root] module.network (close)" -> "[root] module.network.aws_route.public_internet (expand)"
+		"[root] module.network (close)" -> "[root] module.network.aws_route_table_association.private (expand)"
+		"[root] module.network (close)" -> "[root] module.network.aws_route_table_association.public (expand)"
+		"[root] module.network (close)" -> "[root] module.network.output.private_subnet_id (expand)"
+		"[root] module.network (close)" -> "[root] module.network.output.public_subnet_id (expand)"
+		"[root] module.network (close)" -> "[root] module.network.output.vpc_id (expand)"
+		"[root] module.network.aws_internet_gateway.corvanta (expand)" -> "[root] module.network.aws_vpc.corvanta (expand)"
+		"[root] module.network.aws_route.public_internet (expand)" -> "[root] module.network.aws_internet_gateway.corvanta (expand)"
+		"[root] module.network.aws_route.public_internet (expand)" -> "[root] module.network.aws_route_table.public (expand)"
+		"[root] module.network.aws_route_table.private (expand)" -> "[root] module.network.aws_vpc.corvanta (expand)"
+		"[root] module.network.aws_route_table.public (expand)" -> "[root] module.network.aws_vpc.corvanta (expand)"
+		"[root] module.network.aws_route_table_association.private (expand)" -> "[root] module.network.aws_route_table.private (expand)"
+		"[root] module.network.aws_route_table_association.private (expand)" -> "[root] module.network.aws_subnet.private (expand)"
+		"[root] module.network.aws_route_table_association.public (expand)" -> "[root] module.network.aws_route_table.public (expand)"
+		"[root] module.network.aws_route_table_association.public (expand)" -> "[root] module.network.aws_subnet.public (expand)"
+		"[root] module.network.aws_subnet.private (expand)" -> "[root] module.network.aws_vpc.corvanta (expand)"
+		"[root] module.network.aws_subnet.private (expand)" -> "[root] module.network.var.availability_zone (expand)"
+		"[root] module.network.aws_subnet.private (expand)" -> "[root] module.network.var.private_subnet_cidr (expand)"
+		"[root] module.network.aws_subnet.public (expand)" -> "[root] module.network.aws_vpc.corvanta (expand)"
+		"[root] module.network.aws_subnet.public (expand)" -> "[root] module.network.var.availability_zone (expand)"
+		"[root] module.network.aws_subnet.public (expand)" -> "[root] module.network.var.public_subnet_cidr (expand)"
+		"[root] module.network.aws_vpc.corvanta (expand)" -> "[root] module.network.var.environment (expand)"
+		"[root] module.network.aws_vpc.corvanta (expand)" -> "[root] module.network.var.project_name (expand)"
+		"[root] module.network.aws_vpc.corvanta (expand)" -> "[root] module.network.var.vpc_cidr (expand)"
+		"[root] module.network.aws_vpc.corvanta (expand)" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"]"
+		"[root] module.network.output.private_subnet_id (expand)" -> "[root] module.network.aws_subnet.private (expand)"
+		"[root] module.network.output.public_subnet_id (expand)" -> "[root] module.network.aws_subnet.public (expand)"
+		"[root] module.network.output.vpc_id (expand)" -> "[root] module.network.aws_vpc.corvanta (expand)"
+		"[root] module.network.var.availability_zone (expand)" -> "[root] module.network (expand)"
+		"[root] module.network.var.availability_zone (expand)" -> "[root] var.aws_region"
+		"[root] module.network.var.environment (expand)" -> "[root] module.network (expand)"
+		"[root] module.network.var.environment (expand)" -> "[root] var.environment (validation)"
+		"[root] module.network.var.private_subnet_cidr (expand)" -> "[root] module.network (expand)"
+		"[root] module.network.var.project_name (expand)" -> "[root] module.network (expand)"
+		"[root] module.network.var.project_name (expand)" -> "[root] var.project_name"
+		"[root] module.network.var.public_subnet_cidr (expand)" -> "[root] module.network (expand)"
+		"[root] module.network.var.vpc_cidr (expand)" -> "[root] module.network (expand)"
+		"[root] module.storage (close)" -> "[root] module.storage.aws_s3_bucket_public_access_block.corvanta (expand)"
+		"[root] module.storage (close)" -> "[root] module.storage.aws_s3_bucket_server_side_encryption_configuration.corvanta (expand)"
+		"[root] module.storage (close)" -> "[root] module.storage.output.s3_bucket_arn (expand)"
+		"[root] module.storage (close)" -> "[root] module.storage.output.s3_bucket_name (expand)"
+		"[root] module.storage.aws_s3_bucket.corvanta (expand)" -> "[root] module.storage.local.bucket_name (expand)"
+		"[root] module.storage.aws_s3_bucket.corvanta (expand)" -> "[root] module.storage.var.tags (expand)"
+		"[root] module.storage.aws_s3_bucket_public_access_block.corvanta (expand)" -> "[root] module.storage.aws_s3_bucket.corvanta (expand)"
+		"[root] module.storage.aws_s3_bucket_server_side_encryption_configuration.corvanta (expand)" -> "[root] module.storage.aws_s3_bucket.corvanta (expand)"
+		"[root] module.storage.local.bucket_name (expand)" -> "[root] module.storage.var.account_id (expand)"
+		"[root] module.storage.local.bucket_name (expand)" -> "[root] module.storage.var.environment (expand)"
+		"[root] module.storage.local.bucket_name (expand)" -> "[root] module.storage.var.project_name (expand)"
+		"[root] module.storage.output.s3_bucket_arn (expand)" -> "[root] module.storage.aws_s3_bucket.corvanta (expand)"
+		"[root] module.storage.output.s3_bucket_name (expand)" -> "[root] module.storage.aws_s3_bucket.corvanta (expand)"
+		"[root] module.storage.var.account_id (expand)" -> "[root] data.aws_caller_identity.current (expand)"
+		"[root] module.storage.var.account_id (expand)" -> "[root] module.storage (expand)"
+		"[root] module.storage.var.environment (expand)" -> "[root] module.storage (expand)"
+		"[root] module.storage.var.environment (expand)" -> "[root] var.environment (validation)"
+		"[root] module.storage.var.project_name (expand)" -> "[root] module.storage (expand)"
+		"[root] module.storage.var.project_name (expand)" -> "[root] var.project_name"
+		"[root] module.storage.var.tags (expand)" -> "[root] module.storage (expand)"
+		"[root] output.backend_elastic_ip (expand)" -> "[root] module.compute.output.backend_elastic_ip (expand)"
+		"[root] output.backend_instance_id (expand)" -> "[root] module.compute.output.backend_instance_id (expand)"
+		"[root] output.backend_private_ip (expand)" -> "[root] module.compute.output.backend_private_ip (expand)"
+		"[root] output.backend_public_ip (expand)" -> "[root] module.compute.output.backend_public_ip (expand)"
+		"[root] output.s3_bucket_name (expand)" -> "[root] module.storage.output.s3_bucket_name (expand)"
+		"[root] output.sqs_queue_url (expand)" -> "[root] module.messaging.output.sqs_queue_url (expand)"
+		"[root] output.vpc_id (expand)" -> "[root] module.network.output.vpc_id (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] aws_iam_role.corvanta_ec2 (orphan)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] aws_s3_bucket.practice (orphan)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] aws_sqs_queue.corvanta (orphan)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] module.compute.aws_eip_association.backend (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] module.iam.aws_iam_role_policy_attachment.corvanta_s3 (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] module.iam.aws_iam_role_policy_attachment.corvanta_sqs (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] module.network.aws_route.public_internet (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] module.network.aws_route_table_association.private (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] module.network.aws_route_table_association.public (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] module.storage.aws_s3_bucket_public_access_block.corvanta (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)" -> "[root] module.storage.aws_s3_bucket_server_side_encryption_configuration.corvanta (expand)"
+		"[root] provider[\"registry.terraform.io/hashicorp/aws\"]" -> "[root] var.aws_region"
+		"[root] root" -> "[root] local.common_tags (expand)"
+		"[root] root" -> "[root] local.name_prefix (expand)"
+		"[root] root" -> "[root] module.compute (close)"
+		"[root] root" -> "[root] module.iam (close)"
+		"[root] root" -> "[root] module.messaging (close)"
+		"[root] root" -> "[root] module.network (close)"
+		"[root] root" -> "[root] module.storage (close)"
+		"[root] root" -> "[root] output.backend_elastic_ip (expand)"
+		"[root] root" -> "[root] output.backend_instance_id (expand)"
+		"[root] root" -> "[root] output.backend_private_ip (expand)"
+		"[root] root" -> "[root] output.backend_public_ip (expand)"
+		"[root] root" -> "[root] output.s3_bucket_name (expand)"
+		"[root] root" -> "[root] output.sqs_queue_url (expand)"
+		"[root] root" -> "[root] output.vpc_id (expand)"
+		"[root] root" -> "[root] provider[\"registry.terraform.io/hashicorp/aws\"] (close)"
+		"[root] var.admin_cidr_block (validation)" -> "[root] var.admin_cidr_block"
+		"[root] var.environment (validation)" -> "[root] var.environment"
+		"[root] var.ssh_public_key_path (validation)" -> "[root] var.ssh_public_key_path"
+	}
 }

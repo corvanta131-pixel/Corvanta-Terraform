@@ -1,3 +1,2 @@
-# The EC2 instance is managed by modules/compute.
-
-# Keep this file free of duplicate EC2 resource definitions.
+# The security groups are managed by modules/compute/.
+# Keep this file free of duplicate root-level resource definitions.
