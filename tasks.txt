@@ -1,67 +1,21 @@
-# Corvanta — Stage A: API Integration and Changing-IP Awareness
+# Corvanta — Stage 5B: Resume Bootstrap Validation
 
-The Corvanta backend is deployed and publicly accessible through Nginx.
+The bootstrap Terraform files already exist in `~/corvanta/corvanta-terraform/bootstrap/`. They define the dedicated Terraform state S3 bucket and DynamoDB lock table.
 
-- Frontend: `~/corvanta/corvanta-frontend`
-- Backend: `~/corvanta/corvanta-backend`
-- Terraform: `~/corvanta/corvanta-terraform`
-- API base URL: `http://18.159.47.196/api/v1`
-- Health endpoint: `http://18.159.47.196/api/v1/health`
-- AWS region: `eu-central-1`
-- AWS CLI profile: `corvanta-admin`
-- EC2 instance: `i-0ce140cb522998b9a`
-- SSH key: `/home/louis/.ssh/corvanta-ec2`
+Terraform provider initialization timed out while downloading `hashicorp/aws` v6.70.0.
 
-## Objective
+## Tasks
 
-Complete Stage A by verifying the deployed API and preparing the existing frontend for integration. Account for the fact that my public IP changes, which can affect SSH access to EC2.
-
-## 1. Check connectivity and changing public IP
-
-- Detect my current public IPv4 address using a reliable IP-check service.
-- Check whether SSH access to the existing EC2 instance works with the existing SSH key.
-- If SSH fails, inspect the current EC2 security-group SSH ingress rules using AWS CLI profile `corvanta-admin`.
-- Compare the current IP with the existing authorized SSH CIDR.
-- If my IP changed, report the required narrow `/32` CIDR update and identify the exact Terraform resource or configuration responsible.
-- Do not automatically modify AWS security groups, edit Terraform state, or apply Terraform. Request approval before making infrastructure changes.
-- Never open SSH to `0.0.0.0/0`.
-- If SSH already works, do not change the security group merely because the IP changed.
-
-## 2. Inspect the frontend and backend
-
-Read existing project instructions and inspect the frontend architecture, scripts, environment configuration, Axios client, routing, state management, and tests.
-
-Inspect the backend's actual routes, authentication flow, response formats, and CORS configuration. Use source code as the authority; do not invent endpoints or authentication behavior.
-
-## 3. Verify public API access
-
-Check the public API root and health endpoint. Determine whether browser requests will work with the current CORS configuration.
-
-Do not send real credentials or sensitive data over HTTP.
-
-## 4. Prepare frontend API integration
-
-Configure the API base URL using the frontend's existing environment-variable convention. Ensure API errors are handled consistently and prepare the client for the verified authentication flow.
-
-Run relevant existing TypeScript, lint, test, and production-build checks where supported. Fix integration-related issues without unnecessary refactoring.
-
-## 5. Report
-
-Report:
-- Current IP-check and SSH-access results.
-- Whether any security-group change is actually required.
-- Verified backend API, authentication, and CORS findings.
-- Files changed and checks passed or failed.
-- Blockers and the exact recommended next stage.
+1. Inspect the bootstrap Terraform files and existing `.terraform.lock.hcl`.
+2. Check the installed Terraform version, network connectivity to the Terraform Registry, and whether the AWS provider is already cached locally.
+3. Retry `terraform init` from the bootstrap directory using the existing provider constraints and lock file. Do not upgrade providers or change versions just to bypass the timeout.
+4. If initialization succeeds, run `terraform validate`.
+5. Generate a saved plan using `terraform plan -out=bootstrap.tfplan` and inspect it.
+6. Confirm the plan proposes only the intended S3 state bucket and DynamoDB lock table, with no unexpected modifications or deletions.
+7. If provider installation continues to fail, stop and report the exact error and recommended next diagnostic step.
 
 ## Restrictions
 
-- Do not recreate the frontend or replace its architecture.
-- Do not implement the dashboard yet.
-- Do not run Terraform apply/destroy or make AWS infrastructure changes without explicit approval.
-- Do not commit or push.
-- Do not print secrets, tokens, private keys, or `.env` contents.
-- Do not expose port 5000 publicly.
-- The API currently uses HTTP; do not transmit real login credentials until HTTPS is configured.
+Do not apply the plan or create AWS resources. Do not change the root backend configuration, migrate state, alter existing application infrastructure, delete provider caches, or commit/push. Do not expose secrets.
 
-Complete Stage A only, then stop and provide the report.
+Report the validation result and saved plan path, then stop for review.
